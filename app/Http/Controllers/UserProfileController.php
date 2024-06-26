@@ -8,7 +8,8 @@ use App\Models\User;
 
 class UserProfileController extends Controller
 {
-    // Method to calculate the completion rate
+
+
     public function calculateCompletionRate(User $user)
     {
         $fields = ['name', 'email', 'dob', 'city', 'country', 'phone', 'bio', 'profession'];
@@ -22,6 +23,28 @@ class UserProfileController extends Controller
 
         return ($completedFields / count($fields)) * 100;
     }
+
+    public function getProfileCompletion(User $user)
+    {
+        $completionRate = $this->calculateCompletionRate($user);
+        return response()->json(['completionRate' => $completionRate]);
+    }
+
+
+    // Method to calculate the completion rate
+//    public function calculateCompletionRate(User $user)
+//    {
+//        $fields = ['name', 'email', 'dob', 'city', 'country', 'phone', 'bio', 'profession'];
+//        $completedFields = 0;
+//
+//        foreach ($fields as $field) {
+//            if (!empty($user->$field)) {
+//                $completedFields++;
+//            }
+//        }
+//
+//        return ($completedFields / count($fields)) * 100;
+//    }
 
     // Method to show the profile page
     public function show()
