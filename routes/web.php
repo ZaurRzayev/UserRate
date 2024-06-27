@@ -22,6 +22,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [UserProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile/edit', [UserProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile/{user}', [UserProfileController::class, 'update'])->name('profile.update');
+    Route::get('/user/{id}/completion-rate', [UserProfileController::class, 'getCompletionRate']);
 });
 
 require __DIR__.'/auth.php';
