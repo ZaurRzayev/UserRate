@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Auth; // Add this line
 use App\Models\User;
 
 class UserProfileController extends Controller
@@ -21,11 +21,21 @@ class UserProfileController extends Controller
         }
 
         $totalFields = count($fields);
-        if ($totalFields > 0) {
-            return ($filledFields / $totalFields) * 100;
-        } else {
-            return 0; // Handle the case where $totalFields is 0 to avoid division by zero
+        return ($totalFields > 0) ? ($filledFields / $totalFields) * 100 : 0;
+    }
+
+    // Method to get completion rate for a user by ID
+    public function getCompletionRate($id)
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
         }
+
+        $completionRate = $this->calculateCompletionRate($user);
+
+        return response()->json(['completion_rate' => $completionRate]);
     }
 
     // Method to show the profile page
@@ -41,9 +51,9 @@ class UserProfileController extends Controller
     public function edit()
     {
         $user = Auth::user();
-        $completionPercentage = $this->calculateCompletionRate($user);
+        $completionRate = $this->calculateCompletionRate($user);
 
-        return view('profile_edit', compact('user', 'completionPercentage'));
+        return view('profile_edit', compact('user', 'completionRate'));
     }
 
     // Method to update the profile

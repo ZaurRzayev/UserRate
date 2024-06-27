@@ -1,7 +1,11 @@
 <?php
 
-use App\Http\Controllers\UserProfileController;
-use Illuminate\Support\Facades\Route;
 
-Route::get('/user/{id}/completion-rate', [\App\Http\Controllers\UserProfileController::class, 'getCompletionRate']);
+// routes/api.php
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserProfileController;
+
+Route::get('/user/{id}/completion-rate', [UserProfileController::class, 'getCompletionRate']);
+
+
 
