@@ -35,7 +35,7 @@ class UserProfileController extends Controller
 
         $completionRate = $this->calculateCompletionRate($user);
 
-        return response()->json(['completion_rate' => $completionRate]);
+        return response()->json([$completionRate]);
     }
 
     // Method to show the profile page
