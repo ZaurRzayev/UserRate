@@ -2,84 +2,67 @@
 
 namespace App\Http;
 
-use App\Models\User;
-use Carbon\Carbon;
-use Exception;
-use GuzzleHttp\Client;
-use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
-class Kernel extends ConsoleKernel
+class Kernel extends HttpKernel
 {
     /**
-     * Define the application's command schedule.
+     * The application's global HTTP middleware stack.
+     *
+     * These middleware are run during every request to your application.
+     *
+     * @var array<int, class-string|string>
      */
-    protected function schedule(Schedule $schedule): void
-    {
-        info('schedule running');
-
-        // Schedule a task to run every day at 12:00 PM
-        $schedule->call(function () {
-            $users = User::all();
-            foreach ($users as $user) {
-                try {
-                    $completionPercentage = $this->calculateCompletionRate($user);
-
-                    $client = new Client();
-                    $body = "Your profile is {$completionPercentage}% complete. Please update your profile to enjoy full benefits.";
-
-                    $url = 'https://api.adalo.com/v0/apps/0fb25ec4-853d-487d-a48e-bb871341619a/collections/t_66ad570ab2cf4e91b74569e7becda694';
-                    $headers = [
-                        'Content-Type' => 'application/json',
-                        'Authorization' => 'Bearer 5ckiny17el2vymy81icxgnsbu',
-                    ];
-
-                    $data = [
-                        'appId' => '0fb25ec4-853d-487d-a48e-bb871341619a',
-                        'audience' => ['id' => $user->id],
-                        'notification' => [
-                            'titleText' => 'Profile Completion Status',
-                            'bodyText' => $body,
-                        ],
-                    ];
-
-                    $response = $client->post($url, [
-                        'headers' => $headers,
-                        'json' => $data,
-                    ]);
-                    info($response->getBody()->getContents());
-
-                } catch (Exception $exception) {
-                    info($exception->getMessage());
-                }
-            }
-        })->dailyAt('12:00');
-    }
+    protected $middleware = [
+        // \App\Http\Middleware\TrustHosts::class,
+        \App\Http\Middleware\TrustProxies::class,
+        \Illuminate\Http\Middleware\HandleCors::class,
+        \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
+        \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
+        \App\Http\Middleware\TrimStrings::class,
+        \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+    ];
 
     /**
-     * Calculate profile completion rate.
+     * The application's route middleware groups.
+     *
+     * @var array<string, array<int, class-string|string>>
      */
-    private function calculateCompletionRate(User $user): int
-    {
-        $fields = ['name', 'email', 'dob', 'city', 'country', 'phone', 'bio', 'profession'];
-        $completedFields = 0;
+    protected $middlewareGroups = [
+        'web' => [
+            \App\Http\Middleware\EncryptCookies::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            \App\Http\Middleware\VerifyCsrfToken::class,
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        ],
 
-        foreach ($fields as $field) {
-            if (!empty($user->$field)) {
-                $completedFields++;
-            }
-        }
-
-        return ($completedFields / count($fields)) * 100;
-    }
+        'api' => [
+            // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        ],
+    ];
 
     /**
-     * Register the commands for the application.
+     * The application's middleware aliases.
+     *
+     * Aliases may be used instead of class names to conveniently assign middleware to routes and groups.
+     *
+     * @var array<string, class-string|string>
      */
-    protected function commands(): void
-    {
-        $this->load(__DIR__ . '/Commands');
-
-        require base_path('routes/console.php');
-    }
+    protected $middlewareAliases = [
+        'auth' => \App\Http\Middleware\Authenticate::class,
+        'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+        'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
+        'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+        'can' => \Illuminate\Auth\Middleware\Authorize::class,
+        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
+        'precognitive' => \Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests::class,
+        'signed' => \App\Http\Middleware\ValidateSignature::class,
+        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+    ];
 }

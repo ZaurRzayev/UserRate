@@ -8,7 +8,45 @@ use App\Models\User;
 
 class UserProfileController extends Controller
 {
-    // Method to calculate the completion rate
+    public function updatePercentage(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer',
+            'bracket_string' => 'required|string',
+        ]);
+
+        $userId = $request->get('user_id');
+        $bracketString = $request->get('bracket_string');
+
+        // Calculate the percentage of filled brackets
+        $totalBrackets = 10;
+        $filledBrackets = substr_count($bracketString, '{something}');
+        $percentage = ($filledBrackets / $totalBrackets) * 100;
+
+        // Update the Percentage in Adalo
+        $client = new Client();
+        $response = $client->put('https://api.adalo.com/v0/apps/0fb25ec4-853d-487d-a48e-bb871341619a/collections/t_66ad570ab2cf4e91b74569e7becda694' . $userId, [
+            'json' => [
+                'Percentage' => $percentage,
+            ],
+            'headers' => [
+                'Authorization' => 'Bearer 5ckiny17el2vymy81icxgnsbu"',
+            ],
+        ]);
+
+        if ($response->getStatusCode() == 200) {
+            return response()->json(['error' => false, 'percentage' => $percentage]);
+        } else {
+            return response()->json(['error' => true, 'message' => 'Failed to update Percentage']);
+        }
+    }
+
+
+
+
+
+
+
     private function calculateCompletionRate(User $user)
     {
         $fields = ['name', 'email', 'dob', 'city', 'country', 'phone', 'bio', 'profession'];
