@@ -35,7 +35,7 @@ class Kernel extends ConsoleKernel
                     ];
 
                     $data = [
-                        'appId' => 'YOUR_APP_ID',
+                        'appId' => '0fb25ec4-853d-487d-a48e-bb871341619a',
                         'audience' => ['id' => $user->id],
                         'notification' => [
                             'titleText' => 'Profile Completion Status',
