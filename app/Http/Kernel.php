@@ -2,77 +2,84 @@
 
 namespace App\Http;
 
-use Illuminate\Foundation\Http\Kernel as HttpKernel;
+use App\Models\User;
+use Carbon\Carbon;
+use Exception;
+use GuzzleHttp\Client;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
-class Kernel extends HttpKernel
+class Kernel extends ConsoleKernel
 {
     /**
-     * The application's global HTTP middleware stack.
-     *
-     * @var array
+     * Define the application's command schedule.
      */
-    protected $middleware = [
-//        \App\Http\Middleware\TrustHosts::class,
-//        \App\Http\Middleware\TrustProxies::class,
-        \Illuminate\Http\Middleware\HandleCors::class,
-//        \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
-        \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
-//        \App\Http\Middleware\TrimStrings::class,
-        \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
-        \App\Http\Middleware\CorsMiddleware::class,
-        \App\Http\Middleware\CorsMiddleware::class,
-        \App\Http\Middleware\Authenticate::class,
-        \App\Http\Middleware\RedirectIfAuthenticated::class,
-        \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-    ];
+    protected function schedule(Schedule $schedule): void
+    {
+        info('schedule running');
+
+        // Schedule a task to run every day at 12:00 PM
+        $schedule->call(function () {
+            $users = User::all();
+            foreach ($users as $user) {
+                try {
+                    $completionPercentage = $this->calculateCompletionRate($user);
+
+                    $client = new Client();
+                    $body = "Your profile is {$completionPercentage}% complete. Please update your profile to enjoy full benefits.";
+
+                    $url = 'https://api.adalo.com/notifications';
+                    $headers = [
+                        'Content-Type' => 'application/json',
+                        'Authorization' => 'Bearer 5ckiny17el2vymy81icxgnsbu',
+                    ];
+
+                    $data = [
+                        'appId' => 'YOUR_APP_ID',
+                        'audience' => ['id' => $user->id],
+                        'notification' => [
+                            'titleText' => 'Profile Completion Status',
+                            'bodyText' => $body,
+                        ],
+                    ];
+
+                    $response = $client->post($url, [
+                        'headers' => $headers,
+                        'json' => $data,
+                    ]);
+                    info($response->getBody()->getContents());
+
+                } catch (Exception $exception) {
+                    info($exception->getMessage());
+                }
+            }
+        })->dailyAt('12:00');
+    }
 
     /**
-     * The application's route middleware groups.
-     *
-     * @var array
+     * Calculate profile completion rate.
      */
-    protected $middlewareGroups = [
-        'web' => [
-            \App\Http\Middleware\EncryptCookies::class,
-            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-            \Illuminate\Session\Middleware\StartSession::class,
-            \Illuminate\Session\Middleware\AuthenticateSession::class,
-            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-            \App\Http\Middleware\VerifyCsrfToken::class,
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-        ],
+    private function calculateCompletionRate(User $user): int
+    {
+        $fields = ['name', 'email', 'dob', 'city', 'country', 'phone', 'bio', 'profession'];
+        $completedFields = 0;
 
-        'api' => [
-            \Illuminate\Http\Middleware\HandleCors::class,
-            \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            \Illuminate\Http\Middleware\HandleCors::class,
-        ],
-    ];
+        foreach ($fields as $field) {
+            if (!empty($user->$field)) {
+                $completedFields++;
+            }
+        }
+
+        return ($completedFields / count($fields)) * 100;
+    }
 
     /**
-     * The application's route middleware.
-     *
-     * These middleware may be assigned to groups or used individually.
-     *
-     * @var array
+     * Register the commands for the application.
      */
-    protected $routeMiddleware = [
-        'auth' => \App\Http\Middleware\Authenticate::class,
-        'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
-        'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
-        'can' => \Illuminate\Auth\Middleware\Authorize::class,
-        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
-        'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
-        'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
-        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
-        'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'cors' => \App\Http\Middleware\CorsMiddleware::class,
-        'sanctum' => \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-    ];
+    protected function commands(): void
+    {
+        $this->load(__DIR__ . '/Commands');
+
+        require base_path('routes/console.php');
+    }
 }
-
-
-
