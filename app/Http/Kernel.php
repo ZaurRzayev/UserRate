@@ -28,7 +28,7 @@ class Kernel extends ConsoleKernel
                     $client = new Client();
                     $body = "Your profile is {$completionPercentage}% complete. Please update your profile to enjoy full benefits.";
 
-                    $url = 'https://api.adalo.com/notifications';
+                    $url = 'https://api.adalo.com/v0/apps/0fb25ec4-853d-487d-a48e-bb871341619a/collections/t_66ad570ab2cf4e91b74569e7becda694';
                     $headers = [
                         'Content-Type' => 'application/json',
                         'Authorization' => 'Bearer 5ckiny17el2vymy81icxgnsbu',
