@@ -20,7 +20,13 @@ class UserProfileController extends Controller
 
         // Calculate the percentage of filled brackets
         $totalBrackets = 10;
-        $filledBrackets = substr_count($bracketString, '{something}');
+        preg_match_all('/{(.*?)}/', $bracketString, $matches);
+        $filledBrackets = 0;
+        foreach ($matches[1] as $content) {
+            if (trim($content) !== '') {
+                $filledBrackets++;
+            }
+        }
         $percentage = ($filledBrackets / $totalBrackets) * 100;
 
         // Update the Percentage in Adalo
@@ -30,7 +36,7 @@ class UserProfileController extends Controller
                 'Percentage' => $percentage,
             ],
             'headers' => [
-                'Authorization' => 'Bearer 5ckiny17el2vymy81icxgnsbu"',
+                'Authorization' => 'Bearer 5ckiny17el2vymy81icxgnsbu',
             ],
         ]);
 
