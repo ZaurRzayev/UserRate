@@ -8,6 +8,7 @@ use App\Models\User;
 
 class UserProfileController extends Controller
 {
+
     public function updatePercentage(Request $request)
     {
         $request->validate([
@@ -29,23 +30,66 @@ class UserProfileController extends Controller
         }
         $percentage = ($filledBrackets / $totalBrackets) * 100;
 
-        // Update the Percentage in Adalo
-        $client = new Client();
-        $response = $client->put('https://api.adalo.com/v0/apps/0fb25ec4-853d-487d-a48e-bb871341619a/collections/t_66ad570ab2cf4e91b74569e7becda694' . $userId, [
-            'json' => [
-                'Percentage' => $percentage,
-            ],
-            'headers' => [
-                'Authorization' => 'Bearer 5ckiny17el2vymy81icxgnsbu',
-            ],
-        ]);
+        // Update the percentage in the database
+        $user = Auth::user();
+        $user->completion_rate = $percentage;
+        $user->save();
 
-        if ($response->getStatusCode() == 200) {
-            return response()->json(['error' => false, 'percentage' => $percentage]);
-        } else {
-            return response()->json(['error' => true, 'message' => 'Failed to update Percentage']);
-        }
+        return response()->json(['error' => false, 'percentage' => $percentage]);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//    public function updatePercentage(Request $request)
+//    {
+//        $request->validate([
+//            'user_id' => 'required|integer',
+//            'bracket_string' => 'required|string',
+//        ]);
+//
+//        $userId = $request->get('user_id');
+//        $bracketString = $request->get('bracket_string');
+//
+//        // Calculate the percentage of filled brackets
+//        $totalBrackets = 10;
+//        preg_match_all('/{(.*?)}/', $bracketString, $matches);
+//        $filledBrackets = 0;
+//        foreach ($matches[1] as $content) {
+//            if (trim($content) !== '') {
+//                $filledBrackets++;
+//            }
+//        }
+//        $percentage = ($filledBrackets / $totalBrackets) * 100;
+//
+//        // Update the Percentage in Adalo
+//        $client = new Client();
+//        $response = $client->put('https://api.adalo.com/v0/apps/0fb25ec4-853d-487d-a48e-bb871341619a/collections/t_66ad570ab2cf4e91b74569e7becda694' . $userId, [
+//            'json' => [
+//                'Percentage' => $percentage,
+//            ],
+//            'headers' => [
+//                'Authorization' => 'Bearer 5ckiny17el2vymy81icxgnsbu',
+//            ],
+//        ]);
+//
+//        if ($response->getStatusCode() == 200) {
+//            return response()->json(['error' => false, 'percentage' => $percentage]);
+//        } else {
+//            return response()->json(['error' => true, 'message' => 'Failed to update Percentage']);
+//        }
+//    }
 
 
 

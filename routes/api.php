@@ -13,3 +13,5 @@ Route::post('/update-percentage', [UserProfileController::class, 'updatePercenta
 
 
 
+
+
